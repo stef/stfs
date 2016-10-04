@@ -1,0 +1,73 @@
+m 5 /qwer
+o 64 10 /qwer/lkjh
+w 0 65535
+c 0
+o 64 10 /qwer/vcxz
+w 0 65535
+c 0
+o 64 10 /qwer/fdsa
+w 0 65535
+c 0
+o 64 10 /qwer/rewq
+d 10 /qwer/lkjh
+w 0 65535
+d 10 /qwer/vcxz
+c 0
+o 64 10 /qwer/hjkl
+w 0 65535
+c 0
+o 64 10 /qwer/zxcv
+d 10 /qwer/hjkl
+w 0 65535
+c 0
+o 64 10 /qwer/asdf
+w 0 65535
+c 0
+o 64 10 /qwer/qwer
+w 0 65535
+c 0
+d 10 /qwer/asdf
+d 10 /qwer/qwer
+d 10 /qwer/zxcv
+o 64 10 /qwer/asdf
+w 0 65535
+c 0
+o 64 10 /qwer/qwer
+w 0 65535
+c 0
+d 10 /qwer/qwer
+d 10 /qwer/asdf
+d 10 /qwer/qwer
+d 10 /qwer/zxcv
+o 64 10 /qwer/asdf
+w 0 65535
+c 0
+o 64 10 /qwer/qwer
+w 0 65535
+c 0
+d 10 /qwer/qwer
+d 10 /qwer/asdf
+o 64 10 /qwer/asdf
+w 0 65535
+c 0
+o 64 10 /qwer/qwer
+w 0 65535
+c 0
+d 10 /qwer/qwer
+d 10 /qwer/asdf
+o 64 10 /qwer/asdf
+w 0 65535
+c 0
+o 64 10 /qwer/qwer
+w 0 65535
+c 0
+d 10 /qwer/qwer
+d 10 /qwer/asdf
+o 64 10 /qwer/asdf
+w 0 65535
+c 0
+o 64 10 /qwer/qwer
+w 0 65535
+c 0
+d 10 /qwer/qwer
+d 10 /qwer/asdf

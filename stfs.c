@@ -58,8 +58,6 @@
 #include <stdlib.h> // random
 #include <fcntl.h>
 #include <unistd.h>
-// these are only needed for dumping the image
-#include <sys/stat.h>
 
 #define CHUNK_SIZE 128
 #define CHUNKS_PER_BLOCK 1024

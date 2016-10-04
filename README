@@ -1,0 +1,124 @@
+stfs - simple tabular file system
+
+    this file system is meant for the embedded flash of cortex-m3
+    micro controller. I tried yaffs, but it used too much memory, and
+    since the cortex-M3 controller already handles the low level
+    stuff, is not really suited for this purpose. stfs uses no heap,
+    and is also otherwise as the name hints: simple.
+
+stfs is a log-structured appending file system for embedded flash
+devices, that expose the flash mapped as memory.
+
+  - assumes that you have only a few 4KB-128KB erasable blocks - all
+    of the same size.
+
+  - stfs provides only directories and files, but no other types like
+    pipes, links, etc. also no file metadata like timestamps or access
+    permissions.
+
+  - filenames are max 32 bytes long, files max 64KB - both settings
+    are configurable, but otherwise untested.
+
+  - always reserves one empty block for vacuuming.
+
+  - default chunksize is 128B with fs metadata included. unlike other
+    flash file systems where the block size is usually limited by 512B.
+
+  - totally single threaded
+
+License
+
+    stfs is licensed LGPLV2.1+.
+
+how to play with it
+
+    1st of all this is a simulation, a toy. if you want to use it in
+    your micro controller you have to adapt a few things. like how you
+    write chunks and erase blocks. But you can play with it on your
+    computer. Compile everything with the makefile:
+
+    `CFLAGS="-DDEBUG_LEVEL=3" make all`
+
+    where the debug level can be:
+       - 0 is quiet,
+       - 1 - errors,
+       - 2 - info,
+       - 3 - debug.
+
+    if you want to fuzz, you probably want to go with level 0, when
+    you debug you can play with other levels.
+
+    after compiling, you get `stfs` and `afl`.
+
+`stfs` test binary
+   `stfs` demos how to use stfs, executes a few test cases and then
+    dumps the whole fs into ./test.img.
+
+afl
+    `afl` is a simple script interpreter:
+
+    afl.c - reads stdin to execute script on in-RAM stfs and dump the result into test.img
+    commands are
+    m <path> - mkdir
+    x <path> - rmdir
+    o 0|64 <string> - open 64==O_CREAT
+    w <fd> <size> - write
+    r <fd> <size> - read
+    s <fd> <pos> <whence> - seek
+    c <fd> - close
+    t <size> <path> - truncate
+    d <path> - unlink
+
+    <path> is always length prefixed, space-separated, e.g.:
+    m 5 /root
+        ^ path
+      ^ length of path
+
+    ./afl is also used by stfsfuzz.py, if you want to use it with afl,
+    you should compile without logging and dumping of the fs image.
+
+    you can find a few sample test cases in `testcases/`
+
+python tools
+
+    there's two python tools: stfsfuzz.py and anaimg.py
+
+    stfsfuzz.py runs `afl` repeatedly each time testing a different
+    random command, if the command returns something else than -1, it
+    is recorded in ./fuzz.script and keep this command in the test
+    case for subsequent commands to be appended. in the background
+    `afl` always dumps the latest fs image into `test.img`
+
+    `anaimg.py` loads `test.img` and prints a condensed sequence of
+    the chunks, the directory layout with file sizes, and the block
+    statistics.
+
+python deps
+
+   `pip install construct sh`
+
+data structure
+
+   chunk_size = 128
+   chunks_per_block = 1024
+
+   4 different chunk types are used:
+
+   empty = 0xff (1B) irrelevant(all 0xff) (127B)
+   inode (128B)- contain file meta information
+     - chunktype (0xAA) (1B)
+     - directory | file (1b)
+     - size (2B)
+     - parent_directory_obj_id (4B)
+     - obj_id (4B)
+     - name_len (6b)
+     - name (32B)
+     - data (84B)
+   data (7B) - contain data
+    - chunktype (0xCC) (1B)
+    - seq_id (2B)
+    - obj_id (4B)
+    - data blob (chunksize-metasize)
+   deleted = 0x00 (1B) irrelevant(all 0x00) (127B)
+
+   inode with oid 1 is the root directory and virtual

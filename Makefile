@@ -1,4 +1,4 @@
-CFLAGS+=-Wall
+CFLAGS+=-Wall -O2
 
 all: stfs afl
 

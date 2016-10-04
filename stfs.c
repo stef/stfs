@@ -3,8 +3,8 @@
 /* for how to use see main() */
 
 /*
-  log-structured appending file system for flash
-  devices.
+    stfs is a log-structured appending file system for embedded flash
+    devices, that expose the flash mapped as memory.
 
   - for embedded flash in cortex-m3, where you have only a few
     4KB-128KB ereasable blocks. (this implementation only supports
@@ -455,6 +455,7 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
 }
 
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+  // todo port use local random
   uint32_t oid = random(), b=0, c=0;
   // probabalistic, might never finish, todo rewrite into deterministic
   while(oid==0 || find_chunk(blocks, Inode, oid, 0, 0, &b, &c)!=NULL) {

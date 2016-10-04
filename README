@@ -30,6 +30,16 @@ License
 
     stfs is licensed LGPLV2.1+.
 
+api
+
+   currently the api provides the following posix-like interfaces:
+
+   directory handling functions: mkdir, rmdir, opendir, readdir,
+
+   file handling functions: open, lseek, write, read, close, unlink, truncate
+
+   generic functions: init
+
 how to play with it
 
     1st of all this is a simulation, a toy. if you want to use it in

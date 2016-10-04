@@ -802,7 +802,7 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
       chunk.data.oid=fdesc[fildes].ichunk.inode.oid;
       chunk.data.seq=(fdesc[fildes].fptr+written)/DATA_PER_CHUNK;
 
-      LOG(1,"[i] writing chunk %d\n", chunk.data.seq);
+      LOG(3,"[i] writing chunk %d\n", chunk.data.seq);
       b=c=0;
       const int towrite=((nbyte-written>DATA_PER_CHUNK-(fdesc[fildes].fptr+written)%DATA_PER_CHUNK)?
                          DATA_PER_CHUNK-((fdesc[fildes].fptr+written)%DATA_PER_CHUNK):

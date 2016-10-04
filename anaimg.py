@@ -6,6 +6,11 @@ from stfs import Chunk
 
 dirs=set([''])
 files=set()
+img = getimg()
+objects = {1: {'oid': 1, 'path': '/'}}
+empty=[0,0,0,0,0]
+used=[0,0,0,0,0]
+deleted=[0,0,0,0,0]
 
 def getimg():
     with open("test.img", 'r') as fd:
@@ -17,12 +22,6 @@ def split_by_n( seq, n ):
     while seq:
         yield seq[:n]
         seq = seq[n:]
-
-img = getimg()
-objects = {1: {'oid': 1, 'path': '/'}}
-empty=[0,0,0,0,0,0]
-used=[0,0,0,0,0,0]
-deleted=[0,0,0,0,0,0]
 
 def dump_chunks(prev):
     if prev[0]=='d':
@@ -74,7 +73,7 @@ for b, block in enumerate(split_by_n(img,128*1024)):
                     objects[chunk.node.inode.oid]['type']=chunk.node.inode.bits.type
                     objects[chunk.node.inode.oid]['parent']=chunk.node.inode.parent
                     objects[chunk.node.inode.oid]['size']=chunk.node.inode.size
-                    objects[chunk.node.inode.oid]['name']=chunk.node.inode.name
+                    objects[chunk.node.inode.oid]['name']=name
 
             if prev:
                 dump_chunks(prev)
@@ -105,13 +104,23 @@ for b, block in enumerate(split_by_n(img,128*1024)):
 
 ls = []
 for oid, obj in objects.items():
-    if not 'name' in obj: continue
+    if not 'name' in obj:
+        if obj['oid']!=1:
+            print "orphan\t%3d blocks (%dB) of %x [%s..%s]" % (
+                len(obj['seq']),
+                len(obj['seq'])*121,
+                obj['oid'],
+                obj['seq'][:3][1:-1],
+                obj['seq'][-3:][1:-1])
+        continue
     path=['/'+obj['name']]
     o=objects.get(obj['parent'])
     while o and o['oid']!=1:
         path.append('/'+o['name'])
         o=objects.get(o['parent'])
     obj['path']=''.join(reversed(path))
+    if not o or o['oid']!=1:
+        print "dangling object", obj['path']
     # check if seq list could be valid
     #for i, seq in enumerate(sorted(obj['seq'])):
     #    if i!=seq:

@@ -68,20 +68,31 @@ def check():
                         objects[chunk.node.inode.oid]['type']=chunk.node.inode.bits.type
                         objects[chunk.node.inode.oid]['parent']=chunk.node.inode.parent
                         objects[chunk.node.inode.oid]['size']=chunk.node.inode.size
-                        objects[chunk.node.inode.oid]['name']=chunk.node.inode.name
+                        objects[chunk.node.inode.oid]['name']=name
             elif chunk.type == "Empty":
                 empty[b]+=1
             elif chunk.type == "Deleted":
                 deleted[b]+=1
 
     for oid, obj in objects.items():
-        if not 'name' in obj: continue
+        if not 'name' in obj:
+            if obj['oid']!=1:
+                print "orphan\t%3d blocks (%dB) of %x [%s..%s]" % (
+                    len(obj['seq']),
+                    len(obj['seq'])*121,
+                    obj['oid'],
+                    obj['seq'][:3][1:-1],
+                    obj['seq'][-3:][1:-1])
+            continue
         path=['/'+obj['name']]
         o=objects.get(obj['parent'])
         while o and o['oid']!=1:
             path.append('/'+o['name'])
             o=objects.get(o['parent'])
         obj['path']=''.join(reversed(path))
+        if not o or o['oid']!=1:
+            print "dangling object", obj['path']
+            sys.exit(0)
         # check if seq list could be valid
         #for i, seq in enumerate(sorted(obj['seq'])):
         #    if i!=seq:
@@ -160,7 +171,8 @@ def xqt(cmd):
 #    xqt(line.strip())
 #sys.exit(0)
 
-for i in xrange(50000): #random.randint(4,1000)):
+#for _ in xrange(50000): #random.randint(4,1000)):
+while 1:
     op = random.choice(ops)
     if op == 'm':
         if random.randint(0,5)>0: continue

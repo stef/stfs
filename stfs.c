@@ -959,8 +959,10 @@ int stfs_close(int fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
     //LOG(3, "[i] tentatively updating inode\n");
     b=c=0;
     chunk=find_chunk(blocks, Inode, fdesc[fildes].ichunk.inode.oid, 0,0, &b, &c);
-    if(chunk==NULL) {
-      // delete all chunks
+    if(chunk==NULL || chunk->inode.type!=File) { // if inode is dir, then file
+                                                 // has been unlinked and a dir instead created
+                                                 // between open and close
+      // inode has been deleted, also delete all chunks
       del_chunks(blocks, fdesc[fildes].ichunk.inode.oid);
     } else if(memcmp(chunk,&fdesc[fildes].ichunk, sizeof(*chunk))!=0) {
       // invalidate old chunk

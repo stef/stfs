@@ -800,10 +800,10 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
       // this is most important for the case that the fs is full
       // then every chunk overwrite would trigger a full vacuum
       int startseq=(fdesc[fildes].fptr)/DATA_PER_CHUNK;
-      int endseq=(fdesc[fildes].fptr+nbyte)/DATA_PER_CHUNK;
+      int endseq=(fdesc[fildes].fptr+nbyte-1)/DATA_PER_CHUNK;
       LOG(1,"[.] %d %d\n",startseq, endseq);
       int i;
-      for(i=startseq;i<=endseq;i++) {
+      for(i=startseq;i<endseq;i++) {
         b=c=0;
         if(find_chunk(blocks, Data, fdesc[fildes].ichunk.inode.oid, 0, i, &b, &c)==NULL) {
           // fail, couldn't find chunk

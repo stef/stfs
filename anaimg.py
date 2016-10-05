@@ -26,7 +26,7 @@ def split_by_n( seq, n ):
 
 def dump_chunks(prev):
     if prev[0]=='d':
-        print "data\t%3d blocks of %x [%s..%s]" % (len(prev[2]), prev[1], prev[2][:3][1:-1], prev[2][-3:][1:-1])
+        print "data\t%3d blocks of %x [%s..%s]" % (len(prev[2]), prev[1], str(prev[2][:3])[1:-1], str(prev[2][-3:])[1:-1])
     elif prev[0]=='e':
         print "empty\t%3d blocks" % (prev[1])
     elif prev[0]=='x':
@@ -111,8 +111,8 @@ for oid, obj in objects.items():
                 len(obj['seq']),
                 len(obj['seq'])*121,
                 obj['oid'],
-                obj['seq'][:3][1:-1],
-                obj['seq'][-3:][1:-1])
+                str(obj['seq'][:3])[1:-1],
+                str(obj['seq'][-3:])[1:-1])
         continue
     path=['/'+obj['name']]
     o=objects.get(obj['parent'])

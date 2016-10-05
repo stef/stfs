@@ -471,7 +471,8 @@ static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
       }
     }
   }
-  // if execution reaches this, we ran out of OIDs
+  // if execution reaches this, we ran out of OIDs or the FS is empty
+  return 2;
 }
 
 static void del_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t b, const uint32_t c) {

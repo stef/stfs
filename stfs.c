@@ -463,12 +463,11 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
 }
 
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  uint32_t oid=1;
   int b,c;
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==Inode) {
-        oid = blocks[b][c].inode.oid + 1;
+        uint32_t oid = blocks[b][c].inode.oid + 1;
         if (is_oid_available(blocks, oid)) return oid;
       }
     }

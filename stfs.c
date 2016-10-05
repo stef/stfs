@@ -716,6 +716,10 @@ int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK])
     fdesc[fd].ichunk.inode.size=0;
     fdesc[fd].ichunk.inode.oid=new_oid(blocks);
 
+    if(store_chunk(blocks, &fdesc[fd].ichunk)==-1) {
+      return -1;
+    }
+
     return fd;
   } else if(oflag == 0) {
     uint32_t b=0, c=0;
@@ -952,15 +956,16 @@ int stfs_close(int fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
       }
     }
     // need to update inode chunk
-    LOG(3, "[i] tentatively updating inode\n");
+    //LOG(3, "[i] tentatively updating inode\n");
     b=c=0;
     chunk=find_chunk(blocks, Inode, fdesc[fildes].ichunk.inode.oid, 0,0, &b, &c);
-    if(chunk==NULL || (memcmp(chunk,&fdesc[fildes].ichunk, sizeof(*chunk))!=0)) {
-      if(chunk) {
-        // invalidate old chunk
-        LOG(3, "[i] deleting old inode at %d %d\n", b, c);
-        del_chunk(blocks, b, c);
-      }
+    if(chunk==NULL) {
+      // delete all chunks
+      del_chunks(blocks, fdesc[fildes].ichunk.inode.oid);
+    } else if(memcmp(chunk,&fdesc[fildes].ichunk, sizeof(*chunk))!=0) {
+      // invalidate old chunk
+      LOG(3, "[i] deleting old inode at %d %d\n", b, c);
+      del_chunk(blocks, b, c);
       // write new chunk
       store_chunk(blocks, &fdesc[fildes].ichunk);
     }

@@ -452,17 +452,28 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
   return write_chunk(&blocks[b][c], chunk, sizeof(*chunk));
 }
 
+static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t oid) {
+  int b,c;
+  for(b=0;b<NBLOCKS;b++) {
+    for(c=0;c<CHUNKS_PER_BLOCK;c++) {
+      if(blocks[b][c].type==Inode && blocks[b][c].inode.oid == oid) return 0;
+    }
+  }
+  return 1;
+}
+
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   uint32_t oid=1;
   int b,c;
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
-      if(blocks[b][c].type==Inode && blocks[b][c].inode.oid>=oid) {
+      if(blocks[b][c].type==Inode) {
         oid = blocks[b][c].inode.oid + 1;
+        if (is_oid_available(blocks, oid)) return oid;
       }
     }
   }
-  return oid;
+  // if execution reaches this, we ran out of OIDs
 }
 
 static void del_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t b, const uint32_t c) {

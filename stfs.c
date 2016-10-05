@@ -55,7 +55,6 @@
 #include <stdint.h>
 #include <string.h> // mem*
 #include <stdio.h>  // printf
-#include <stdlib.h> // random
 #include <fcntl.h>
 #include <unistd.h>
 

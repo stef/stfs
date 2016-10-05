@@ -783,6 +783,7 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
       // then every chunk overwrite would trigger a full vacuum
       int startseq=(fdesc[fildes].fptr)/DATA_PER_CHUNK;
       int endseq=(fdesc[fildes].fptr+nbyte)/DATA_PER_CHUNK;
+      LOG(1,"[.] %d %d\n",startseq, endseq);
       int i;
       for(i=startseq;i<=endseq;i++) {
         b=c=0;
@@ -792,6 +793,9 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
           errno = E_NOCHUNK;
           return -1;
         }
+        // sacrificing performance it might be good to check if the
+        // overwritten block changes in a way that needs
+        // deletion. otherwise we could skip deleting it.
         del_chunk(blocks, b, c);
       }
       LOG(3,"[i] deleted %d chunks to be overwritten\n",endseq-startseq);

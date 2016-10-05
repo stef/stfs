@@ -1,0 +1,454 @@
+w 0 66080
+o 64 2 /A
+m 3 /BA
+m 3 /BA
+d 2 /A
+c 4
+o 0 3 /AB
+w 4 61067
+d 0 
+m 5 /BA/A
+m 6 /BA/AB
+t 29107 0 
+x 5 /BA/A
+c 3
+s 0 19068 2
+x 6 /BA/AB
+m 2 /B
+c 2
+s 1 37064 2
+d 0 
+r 1 28346
+s 0 56870 0
+s 0 43804 0
+x 3 /BA
+c 4
+x 2 /B
+d 0 
+s 1 26136 1
+w 4 58882
+s 2 38151 2
+o 0 2 /A
+d 0 
+o 0 2 /A
+t 41126 0 
+o 64 2 /A
+c 0
+c 4
+c 4
+o 64 3 /AB
+m 3 /BB
+m 2 /A
+s 0 42532 0
+s 0 53264 1
+w 0 31061
+o 0 5 /BB/B
+w 3 64415
+r 2 52016
+m 5 /BB/A
+d 3 /AB
+r 2 49412
+r 4 66967
+r 4 10276
+x 3 /BB
+x 5 /BB/A
+o 64 3 /AB
+t 40548 3 /AB
+s 0 30715 1
+m 5 /A/BB
+t 19880 0 
+x 2 /A
+d 2 /A
+o 0 8 /A/BB/BA
+x 5 /A/BB
+w 2 40445
+w 2 29044
+w 4 28898
+x 0 
+w 2 12562
+o 64 2 /A
+w 2 11921
+r 4 46657
+c 2
+c 3
+m 2 /B
+o 0 4 /B/B
+m 2 /B
+w 2 62800
+w 4 68914
+t 17364 2 /A
+s 3 64778 2
+w 4 55381
+w 2 33843
+r 0 12108
+d 0 
+x 0 
+w 3 58301
+w 3 22929
+s 2 18989 2
+s 4 53781 1
+o 0 5 /B/BA
+s 2 15935 0
+d 2 /A
+r 2 23678
+m 2 /A
+d 0 
+d 3 /AB
+t 27676 0 
+o 64 3 /AA
+t 26553 0 
+d 0 
+m 5 /B/BB
+d 3 /AA
+o 64 5 /B/BA
+r 0 26110
+s 2 29362 0
+m 8 /B/BB/AB
+d 5 /B/BA
+d 0 
+r 0 23013
+d 0 
+m 5 /B/BA
+d 0 
+o 0 2 /B
+d 0 
+s 2 19215 0
+m 4 /A/A
+c 1
+c 3
+t 29641 0 
+m 3 /AA
+c 1
+r 1 2427
+s 4 10340 1
+c 0
+m 4 /A/A
+t 21760 0 
+r 0 6048
+o 0 2 /A
+m 10 /B/BB/AB/A
+c 1
+t 24987 0 
+x 5 /B/BB
+m 12 /B/BB/AB/A/A
+m 10 /B/BB/AB/A
+w 4 35825
+t 51983 0 
+r 3 66664
+c 0
+w 4 65010
+c 4
+t 39641 0 
+s 4 4506 2
+o 64 13 /B/BB/AB/A/AA
+r 4 44485
+c 2
+x 0 
+w 2 43852
+m 3 /AB
+t 58528 13 /B/BB/AB/A/AA
+c 4
+o 64 15 /B/BB/AB/A/A/BB
+w 3 17756
+m 8 /B/BA/AA
+d 0 
+t 18105 15 /B/BB/AB/A/A/BB
+m 5 /B/AB
+r 2 59740
+x 12 /B/BB/AB/A/A
+r 3 52018
+r 0 67343
+m 7 /B/BA/B
+w 0 16549
+o 0 12 /B/BB/AB/A/B
+m 11 /B/BB/AB/AA
+r 1 39984
+c 0
+w 3 58941
+o 64 5 /AB/B
+w 4 33814
+m 11 /B/BA/AA/BB
+t 65048 15 /B/BB/AB/A/A/BB
+d 0 
+r 2 25970
+c 3
+r 3 553
+t 17384 15 /B/BB/AB/A/A/BB
+s 1 15157 0
+w 4 3432
+s 1 43012 2
+o 0 6 /AB/AB
+s 3 35907 1
+m 6 /AA/BA
+c 0
+c 2
+t 67295 15 /B/BB/AB/A/A/BB
+x 11 /B/BA/AA/BB
+d 13 /B/BB/AB/A/AA
+s 0 18898 1
+t 61653 0 
+w 3 11174
+d 15 /B/BB/AB/A/A/BB
+s 3 59938 2
+c 1
+d 0 
+d 0 
+c 1
+w 0 47313
+s 1 34879 1
+w 1 65378
+o 0 5 /A/AA
+m 13 /B/BB/AB/A/AB
+x 7 /B/BA/B
+d 5 /AB/B
+s 0 47508 1
+w 3 33930
+t 46805 0 
+x 2 /A
+c 1
+m 13 /B/BB/AB/A/BB
+m 5 /AA/A
+r 2 41478
+w 4 41720
+m 10 /B/BA/AA/A
+m 5 /AA/A
+t 40564 0 
+r 3 56281
+t 7381 0 
+o 64 12 /B/BA/AA/A/B
+w 4 48427
+x 8 /B/BA/AA
+m 13 /B/BA/AA/A/AA
+r 3 36135
+c 0
+r 1 1717
+x 2 /B
+c 4
+r 3 14818
+d 12 /B/BA/AA/A/B
+m 6 /A/A/A
+r 4 29967
+s 4 3926 0
+r 2 17184
+o 64 8 /AA/A/BA
+x 0 
+o 0 2 /B
+m 13 /B/BB/AB/A/BB
+x 5 /AA/A
+c 2
+r 0 69134
+d 0 
+c 3
+d 8 /AA/A/BA
+t 43940 0 
+w 3 6958
+w 0 66889
+s 2 31983 2
+w 0 54198
+w 1 26099
+o 0 16 /B/BB/AB/A/AB/BA
+x 5 /B/BA
+c 1
+m 5 /AA/B
+t 41867 0 
+o 64 8 /AA/B/BB
+t 55789 8 /AA/B/BB
+c 0
+s 2 23414 1
+d 8 /AA/B/BB
+o 64 10 /B/BB/AB/B
+r 3 57823
+m 6 /AA/AA
+c 0
+r 0 40397
+s 3 51859 1
+w 3 69715
+m 13 /B/BB/AB/AA/A
+o 0 8 /AA/B/AA
+x 13 /B/BB/AB/AA/A
+r 4 36192
+s 1 51280 0
+o 64 15 /B/BB/AB/A/BB/A
+t 68997 0 
+r 1 68033
+c 1
+x 6 /A/A/A
+t 19499 15 /B/BB/AB/A/BB/A
+s 4 19026 2
+d 10 /B/BB/AB/B
+t 62095 0 
+w 0 22842
+w 4 10731
+t 63476 15 /B/BB/AB/A/BB/A
+w 1 10482
+x 6 /AA/BA
+m 13 /B/BA/AA/A/AB
+x 10 /B/BA/AA/A
+t 18077 15 /B/BB/AB/A/BB/A
+x 6 /AA/AA
+d 15 /B/BB/AB/A/BB/A
+m 15 /B/BA/AA/A/AB/A
+r 0 8424
+m 8 /B/AB/BB
+m 6 /A/A/A
+r 4 1433
+s 3 28735 0
+t 28999 0 
+s 2 8301 0
+t 44845 0 
+d 0 
+d 0 
+w 0 59036
+o 64 5 /AA/A
+r 0 33641
+s 0 62856 0
+d 5 /AA/A
+d 0 
+o 0 15 /B/BB/AB/A/BB/A
+r 3 48510
+r 2 58819
+s 0 20242 1
+d 0 
+x 11 /B/BB/AB/AA
+m 8 /A/A/A/A
+c 2
+x 8 /A/A/A/A
+s 4 26454 0
+w 4 51925
+s 4 13907 1
+c 2
+m 7 /A/A/BA
+o 0 3 /AB
+t 25931 0 
+s 3 26047 2
+t 42364 0 
+c 2
+r 0 49265
+t 50217 0 
+o 64 11 /B/BB/AB/AA
+x 8 /B/AB/BB
+o 64 17 /B/BA/AA/A/AB/A/A
+r 1 63792
+s 4 5289 2
+r 4 34972
+w 4 59808
+m 9 /A/A/BA/A
+r 0 7221
+t 48924 0 
+x 8 /B/BB/AB
+t 26825 11 /B/BB/AB/AA
+o 64 16 /B/BB/AB/A/AB/BB
+s 0 66965 2
+w 4 16171
+s 1 7338 1
+w 3 17879
+t 21563 16 /B/BB/AB/A/AB/BB
+d 0 
+t 61531 17 /B/BA/AA/A/AB/A/A
+s 2 45386 2
+x 4 /A/A
+m 6 /AB/BA
+s 4 1384 2
+w 3 53417
+x 3 /AB
+c 3
+s 3 53293 2
+o 0 3 /AB
+s 1 33045 2
+s 0 20021 2
+t 32588 16 /B/BB/AB/A/AB/BB
+s 4 63222 1
+x 7 /A/A/BA
+d 16 /B/BB/AB/A/AB/BB
+o 64 16 /B/BB/AB/A/BB/BB
+x 3 /AA
+t 40106 17 /B/BA/AA/A/AB/A/A
+o 0 7 /B/AB/A
+s 2 32273 2
+o 64 13 /B/BB/AB/A/AB
+r 1 34840
+d 11 /B/BB/AB/AA
+t 22173 0 
+s 4 22532 0
+r 0 69028
+r 4 586
+x 6 /AB/BA
+o 0 16 /B/BA/AA/A/AA/BB
+s 1 43178 2
+s 2 19720 1
+d 16 /B/BB/AB/A/BB/BB
+w 1 12902
+r 3 1323
+o 0 12 /A/A/BA/A/BA
+m 8 /B/AB/BA
+x 5 /AA/B
+m 8 /B/AB/AB
+x 13 /B/BB/AB/A/BB
+x 5 /B/AB
+o 0 10 /B/AB/BA/A
+o 0 15 /B/BB/AB/A/AB/A
+t 18862 0 
+t 27104 13 /B/BB/AB/A/AB
+o 64 18 /B/BA/AA/A/AB/A/BA
+w 4 60092
+d 13 /B/BB/AB/A/AB
+r 4 6839
+x 6 /A/A/A
+r 4 44508
+m 10 /B/AB/AB/B
+s 3 299 1
+o 64 11 /A/A/BA/A/B
+x 10 /B/BB/AB/A
+m 11 /B/AB/AB/BA
+d 17 /B/BA/AA/A/AB/A/A
+r 4 24608
+x 9 /A/A/BA/A
+w 1 14281
+c 1
+w 2 13498
+w 1 44632
+x 13 /B/BA/AA/A/AA
+x 11 /B/AB/AB/BA
+s 2 65118 2
+w 3 39726
+s 1 52144 1
+w 0 8575
+o 64 11 /B/AB/BA/AA
+x 0 
+d 11 /B/AB/BA/AA
+t 30504 18 /B/BA/AA/A/AB/A/BA
+t 7248 18 /B/BA/AA/A/AB/A/BA
+d 0 
+o 0 11 /B/AB/BA/BB
+o 0 16 /B/BA/AA/A/AB/AA
+w 1 68048
+o 64 10 /B/AB/BA/B
+s 2 6459 2
+d 18 /B/BA/AA/A/AB/A/BA
+o 64 12 /B/AB/AB/B/B
+m 13 /B/AB/AB/B/AA
+c 4
+t 67987 10 /B/AB/BA/B
+w 2 55034
+s 0 62195 0
+c 2
+c 2
+x 0 
+x 0 
+o 0 10 /B/AB/AB/A
+r 4 53925
+o 64 15 /B/BA/AA/A/AB/B
+o 64 18 /B/BA/AA/A/AB/A/BB
+c 4
+t 22447 0 
+m 3 /BB
+d 11 /A/A/BA/A/B
+s 1 56353 1
+c 1
+c 4
+x 13 /B/BA/AA/A/AB
+w 2 49959
+s 0 55539 0
+m 13 /B/AB/AB/B/BA
+d 18 /B/BA/AA/A/AB/A/BB
+c 3

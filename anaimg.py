@@ -6,7 +6,6 @@ from stfs import Chunk
 
 dirs=set([''])
 files=set()
-img = getimg()
 objects = {1: {'oid': 1, 'path': '/'}}
 empty=[0,0,0,0,0]
 used=[0,0,0,0,0]
@@ -15,6 +14,8 @@ deleted=[0,0,0,0,0]
 def getimg():
     with open("test.img", 'r') as fd:
         return fd.read()
+
+img = getimg()
 
 def split_by_n( seq, n ):
     """A generator to divide a sequence into chunks of n units.

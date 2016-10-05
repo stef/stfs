@@ -55,7 +55,6 @@
 #include <stdint.h>
 #include <string.h> // mem*
 #include <stdio.h>  // printf
-#include <stdlib.h> // random
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -452,14 +451,29 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
   return write_chunk(&blocks[b][c], chunk, sizeof(*chunk));
 }
 
-static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  // todo port use local random
-  uint32_t oid = random(), b=0, c=0;
-  // probabalistic, might never finish, todo rewrite into deterministic
-  while(oid==0 || find_chunk(blocks, Inode, oid, 0, 0, &b, &c)!=NULL) {
-    oid = random(); // todo use proper random
+static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t oid) {
+  int b,c;
+  if (oid < 2) return 0;
+  for(b=0;b<NBLOCKS;b++) {
+    for(c=0;c<CHUNKS_PER_BLOCK;c++) {
+      if(blocks[b][c].type==Inode && blocks[b][c].inode.oid == oid) return 0;
+    }
   }
-  return oid;
+  return 1;
+}
+
+static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+  int b,c;
+  for(b=0;b<NBLOCKS;b++) {
+    for(c=0;c<CHUNKS_PER_BLOCK;c++) {
+      if(blocks[b][c].type==Inode) {
+        uint32_t oid = blocks[b][c].inode.oid + 1;
+        if (is_oid_available(blocks, oid)) return oid;
+      }
+    }
+  }
+  // if execution reaches this, we ran out of OIDs or the FS is empty
+  return 2;
 }
 
 static void del_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t b, const uint32_t c) {

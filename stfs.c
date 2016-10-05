@@ -453,6 +453,7 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
 
 static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t oid) {
   int b,c;
+  if (oid < 2) return 0;
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==Inode && blocks[b][c].inode.oid == oid) return 0;

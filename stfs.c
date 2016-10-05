@@ -453,11 +453,14 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
 }
 
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  // todo port use local random
-  uint32_t oid = random(), b=0, c=0;
-  // probabalistic, might never finish, todo rewrite into deterministic
-  while(oid==0 || find_chunk(blocks, Inode, oid, 0, 0, &b, &c)!=NULL) {
-    oid = random(); // todo use proper random
+  uint32_t oid=1;
+  int b,c;
+  for(b=0;b<NBLOCKS;b++) {
+    for(c=0;c<CHUNKS_PER_BLOCK;c++) {
+      if(blocks[b][c].type==Inode && blocks[b][c].inode.oid>=oid) {
+        oid = blocks[b][c].inode.oid + 1;
+      }
+    }
   }
   return oid;
 }

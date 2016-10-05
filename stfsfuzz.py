@@ -81,8 +81,8 @@ def check():
                     len(obj['seq']),
                     len(obj['seq'])*121,
                     obj['oid'],
-                    obj['seq'][:3][1:-1],
-                    obj['seq'][-3:][1:-1])
+                    str(obj['seq'][:3])[1:-1],
+                    str(obj['seq'][-3:])[1:-1])
             continue
         path=['/'+obj['name']]
         o=objects.get(obj['parent'])

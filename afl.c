@@ -93,18 +93,18 @@ int _main(void) {
   uint8_t cmd;
   int cmd_size;
   while (1) {
-    alarm(1);
+    //alarm(1);
     if(fscanf(stdin,"%c ", &cmd)!=1) return 0;
-    alarm(0);
+    //alarm(0);
     switch(cmd) {
     case('m'): { /*mkdir path*/
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin,"%d ", &cmd_size)!=1) return 0;
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
       uint8_t path[cmd_size+1];
       int n;
       if((n=fread(path, 1, cmd_size, stdin))!=cmd_size) return 0;
-      alarm(0);
+      //alarm(0);
       path[n]=0;
       fprintf(stderr,"mkdir %s returns: %d\n", path, stfs_mkdir(blocks, path));
       break;
@@ -112,37 +112,37 @@ int _main(void) {
     case('l'): { /*ctx=opendir path*/ };
     case('n'): { /*readdir ctx*/ };
     case('x'): { /*rmdir path*/
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin,"%d ", &cmd_size)!=1) return 0;
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
       uint8_t path[cmd_size+1];
       int n;
       if((n=fread(path, 1, cmd_size, stdin))!=cmd_size) return 0;
-      alarm(0);
+      //alarm(0);
       path[n]=0;
       fprintf(stderr,"rmdir '%s' returns: %d\n", path, stfs_rmdir(blocks, path));
       break;
     };
     case('o'): { /*open flags path */
       int oflags;
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin, "%d ", &oflags)!=1) return 0;
       if(fscanf(stdin,"%d ", &cmd_size)!=1) return 0;
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
       uint8_t path[cmd_size+1];
       int n;
       if((n=fread(path, 1, cmd_size, stdin))!=cmd_size) return 0;
-      alarm(0);
+      //alarm(0);
       path[n]=0;
       fprintf(stderr,"open '%s' %d returns: %d\n", path, oflags, stfs_open(path, oflags, blocks));
       break;
     };
     case('w'): { /*write fd buf*/
       int fd;
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin, "%d ", &fd)!=1) return 0;
       if(fscanf(stdin,"%d ", &cmd_size)!=1) return 0;
-      alarm(0);
+      //alarm(0);
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
       uint8_t buf[cmd_size+1];
       int n;
@@ -152,11 +152,11 @@ int _main(void) {
     };
     case('r'): { /*read fd size*/
       int fd;
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin, "%d ", &fd)!=1) return 0;
       if(fscanf(stdin, "%d", &cmd_size)!=1) return 0;
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
-      alarm(0);
+      //alarm(0);
       uint8_t buf[cmd_size+1];
       int ret;
       fprintf(stderr,"read %dB from %d returns: %d\n", cmd_size, fd, (ret=stfs_read(fd, buf, cmd_size, blocks)));
@@ -165,42 +165,42 @@ int _main(void) {
     }
     case('s'): { /*seek fd off whence*/
       int fd, off, whence;
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin, "%d %d %d", &fd, &off, &whence)!=3) return 0;
-      alarm(0);
+      //alarm(0);
       fprintf(stderr,"seek %d %d %d returns: %d\n", fd, off, whence, stfs_lseek(fd, off, whence));
       break;
     };
     case('c'): { /*close fd */
       int fd;
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin, "%d", &fd)!=1) return 0;
-      alarm(0);
+      //alarm(0);
       fprintf(stderr,"close %d returns: %d\n", fd, stfs_close(fd, blocks));
       break;
     };
     case('d'): { /*unlink path */
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin,"%d ", &cmd_size)!=1) return 0;
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
       uint8_t path[cmd_size+1];
       int n;
       if((n=fread(path, 1, cmd_size, stdin))!=cmd_size) return 0;
-      alarm(0);
+      //alarm(0);
       path[n]=0;
       fprintf(stderr,"unlink '%s' returns: %d\n", path, stfs_unlink(blocks, path));
       break;
     };
     case('t'): { /*truncate size path */
       int size;
-      alarm(1);
+      //alarm(1);
       if(fscanf(stdin, "%d ", &size)!=1) return 0;
       if(fscanf(stdin,"%d ", &cmd_size)!=1) return 0;
       if(cmd_size>1024*1024 || cmd_size<0) return 0;
       uint8_t path[cmd_size+1];
       int n;
       if((n=fread(path, 1, cmd_size, stdin))!=cmd_size) return 0;
-      alarm(0);
+      //alarm(0);
       path[n]=0;
       fprintf(stderr,"truncate %d '%s' returns: %d\n", size, path, stfs_truncate(path, size, blocks));
       break;

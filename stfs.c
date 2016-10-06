@@ -150,14 +150,14 @@ typedef struct {
   char idirty :1;
   char padding :6;
   Chunk ichunk;
-  int fptr;
+  uint32_t fptr;
 } STFS_File;
 
 static STFS_File fdesc[MAX_OPEN_FILES];
 static uint32_t errno;
 
 void dump(uint8_t *src, uint32_t len) {
-  int i,j;
+  uint32_t i,j;
   for(i=0;i<len;i+=32) {
     for(j=0;j<32 && i+j<len;j++) {
       printf("%02x ", src[i+j]);
@@ -205,7 +205,7 @@ void dump_chunk(Chunk *chunk) {
   }
 }
 
-static int validfd(int fildes) {
+static int validfd(uint32_t fildes) {
   if(fildes<0 || fildes>=MAX_OPEN_FILES) {
     // fail invalid fildes
     LOG(1, "[x] invalid fd, %d\n", fildes);
@@ -226,10 +226,10 @@ static const Chunk* find_inode_by_parent_fname(Chunk blocks[NBLOCKS][CHUNKS_PER_
                          const uint8_t* fname,
                          uint32_t *block, uint32_t *chunk) {
   LOG(3, "[i] find_inode_by_parent_fname %x %s %d %d\n", parent, fname, *block, *chunk);
-  int b;
-  int fsize=strlen((const char*) fname);
+  uint32_t b;
+  const uint32_t fsize=strlen((const char*) fname);
   for(b=0;b<NBLOCKS;b++) {
-    int c;
+    uint32_t c;
     for(c=0;c<CHUNKS_PER_BLOCK && blocks[b][c].type!=Empty;c++) {
       //fprintf(stderr, "[O] %d == %d '%s', '%s'\n", fsize, blocks[b][c].inode.name_len, fname, blocks[b][c].inode.name);
       if(blocks[b][c].type==Inode &&
@@ -254,7 +254,7 @@ static const Chunk* find_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK],
                          const uint16_t seq,
                          uint32_t *block, uint32_t *chunk) {
   //printf("[i] find_chunk %x %x %x %x %d %d\n", type, oid, parent, seq, *block, *chunk);
-  int b,c=*chunk;
+  uint32_t b,c=*chunk;
   for(b=*block;b<NBLOCKS;b++) {
     for(;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==type && (
@@ -291,14 +291,14 @@ static uint32_t oid_by_path(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *pa
     return 0;
   }
 
-  int i;
+  uint32_t i;
   uint8_t* ptr=path+1;
   uint32_t parent=1; // start with root dir
 
   for(i=1;path[i]!=0;i++) {
     if(path[i]=='/') {
       path[i]=0;
-      const int psize = strlen((char*) ptr);
+      const uint32_t psize = strlen((char*) ptr);
       if(psize==0 || psize>32) {
         // directory name size is <0 or >32
         LOG(1, "[x] directory name size is <0 or >32\n");
@@ -320,7 +320,7 @@ static uint32_t oid_by_path(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *pa
     }
   }
 
-  const int psize = strlen((char*) ptr);
+  const uint32_t psize = strlen((char*) ptr);
   if(psize==0 || psize>32) {
     // directory name size is <0 or >32
     errno = E_NAMESIZE;
@@ -334,7 +334,7 @@ static uint32_t oid_by_path(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *pa
   return blocks[*b][*c].inode.oid;
 }
 
-static int write_chunk(void *dst, void *src, int size) {
+static int write_chunk(void *dst, void *src, uint32_t size) {
   if(size!=sizeof(Chunk)) {
     LOG(1, "[x] Bad chunk size: %d\n", size);
     errno = E_BADCHUNK;
@@ -345,8 +345,8 @@ static int write_chunk(void *dst, void *src, int size) {
 }
 
 int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  int i, b,c, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
-  int candidate=-1, candidate_reclaim=0, reserved=-1;
+  uint32_t i, b,c, candidate_reclaim=0, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
+  int candidate=-1, reserved=-1;
   for(i=0;i<NBLOCKS;i++) { used[i]=0; unused[i]=0; deleted[i]=0; }
   fprintf(stderr, "[i] Block stats\n");
   for(b=0;b<NBLOCKS;b++) {
@@ -396,7 +396,7 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
     return -1;
   }
   if(c==0) { // completely empty block, check if there's other empty blocks
-    int i, found=0;
+    uint32_t i, found=0;
     for(i=0;i<NBLOCKS;i++) {
       if(i!=b && blocks[i][0].type==Empty) {
         found++;
@@ -425,7 +425,7 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
           return -1;
         }
         if(c==0) { // completely empty block, check if there's other empty blocks
-          int i, found=0;
+          uint32_t i, found=0;
           for(i=0;i<NBLOCKS;i++) {
             if(i!=b && blocks[i][0].type==Empty) {
               found++;
@@ -452,7 +452,7 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
 }
 
 static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t oid) {
-  int b,c;
+  uint32_t b,c;
   if (oid < 2) return 0;
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
@@ -463,7 +463,7 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
 }
 
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  int b,c;
+  uint32_t b,c;
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==Inode) {
@@ -486,7 +486,7 @@ static void del_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t b,
 
 int opendir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path, ReaddirCTX *ctx) {
   memset((uint8_t*) ctx,0,sizeof(*ctx));
-  int last=strlen((char*) path)-1;
+  const uint32_t last=strlen((char*) path)-1;
   uint32_t oid, b=0, c=0;
   if(path[last]=='/') {
     path[last]=0;
@@ -519,9 +519,9 @@ const Inode_t* readdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], ReaddirCTX *ctx)
 }
 
 static uint8_t* split_path(uint8_t *path) {
-  int i;
+  uint32_t i;
   uint8_t* ptr=NULL;
-  for(i=0;path[i]!=0;i++) {
+  for(i=0;path[i]!=0 && i<(2^32)-1;i++) {
     if(path[i]=='/') ptr=&(path[i]);
   }
   if(ptr==NULL) {
@@ -555,7 +555,7 @@ static int create_obj(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path, Ch
 
   //printf("[i] split path: '%s' fname: '%s'\n", path, fname);
   uint32_t b=0,c=0;
-  int parent=oid_by_path(blocks, path,&b,&c);
+  const uint32_t parent=oid_by_path(blocks, path,&b,&c);
   if(parent==0) {
     LOG(1, "[x] '%s' not found by oid\n", path);
     // fail no such directory
@@ -567,7 +567,7 @@ static int create_obj(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path, Ch
   // check if object already exists
   ReaddirCTX ctx={.oid=parent,.block=0,.chunk=0};
   const Inode_t *inode;
-  int fsize=strlen((char*) fname);
+  const uint32_t fsize=strlen((char*) fname);
   while((inode=readdir(blocks, &ctx))!=0) {
     if(fsize==inode->name_len &&
        memcmp(inode->name, fname, inode->name_len)==0) {
@@ -580,7 +580,7 @@ static int create_obj(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path, Ch
   }
 
   LOG(3, "[i] parent inode: %x\n", parent);
-  int nsize = strlen((char*) fname);
+  const uint32_t nsize = strlen((char*) fname);
   if(nsize>32 || nsize <1) {
     // fail name not valid size
     LOG(1, "invalid fname size\n");
@@ -625,7 +625,7 @@ int stfs_mkdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path) {
 
 int stfs_rmdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path) {
   uint32_t b=0, c=0;
-  int self=oid_by_path(blocks, path, &b, &c);
+  const uint32_t self=oid_by_path(blocks, path, &b, &c);
   if(self==0) {
     LOG(1, "[x] path doesn't exist '%s'\n", path);
     // fail no such directory
@@ -661,12 +661,12 @@ int geterrno(void) {
   return errno;
 }
 
-int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+int stfs_open(uint8_t *path, uint32_t oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   // oflag maybe: O_RDONLY O_RDWR O_WRONLY O_SYNC(caching?) O_EXCL
   // oflags: O_APPEND O_CREAT O_TRUNC(seek)
 
   // find free fdesc
-  int fd;
+  uint32_t fd;
   for(fd=0;fd<MAX_OPEN_FILES;fd++) {
     if(fdesc[fd].free!=0) break;
   }
@@ -683,7 +683,7 @@ int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK])
 
     // check if file doesn't exist
     uint32_t b=0, c=0;
-    int self=oid_by_path(blocks, path, &b, &c);
+    const uint32_t self=oid_by_path(blocks, path, &b, &c);
     if(self!=0) {
       LOG(1, "[x] path already exists '%s'\n", path);
       // fail no such directory
@@ -696,7 +696,7 @@ int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK])
       LOG(1, "[x] create obj failed\n");
       return -1;
     }
-    int i;
+    uint32_t i;
     for(i=0;i<MAX_OPEN_FILES;i++) {
       if(i==fd ||fdesc[i].free!=0) continue;
       if(fdesc[i].ichunk.inode.name_len == fdesc[fd].ichunk.inode.name_len &&
@@ -723,7 +723,7 @@ int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK])
     return fd;
   } else if(oflag == 0) {
     uint32_t b=0, c=0;
-    int self=oid_by_path(blocks, path, &b, &c);
+    const uint32_t self=oid_by_path(blocks, path, &b, &c);
     if(self==0) {
       LOG(1, "[x] path not found '%s'\n", path);
       // fail no such file
@@ -744,9 +744,9 @@ int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK])
   return -1;
 }
 
-off_t stfs_lseek(int fildes, off_t offset, int whence) {
+off_t stfs_lseek(uint32_t fildes, off_t offset, int whence) {
   VALIDFD(fildes);
-  int newfptr=fdesc[fildes].fptr;
+  uint32_t newfptr=fdesc[fildes].fptr;
   switch(whence) {
   case(SEEK_SET): {newfptr=offset; break;}
   case(SEEK_CUR): {newfptr+=offset; break;}
@@ -767,7 +767,7 @@ off_t stfs_lseek(int fildes, off_t offset, int whence) {
   return newfptr;
 }
 
-ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   // check if fildes is valid
   // before writing a chunk check if it changed
   // update inode if neccessary
@@ -790,7 +790,7 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
     return -1;
   }
 
-  int written=0;
+  uint32_t written=0;
   if(fdesc[fildes].fptr<=fdesc[fildes].ichunk.inode.size) {
     // append to end of file
     uint32_t b,c;
@@ -799,10 +799,10 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
       // we are overwriting some chunks, delete them all
       // this is most important for the case that the fs is full
       // then every chunk overwrite would trigger a full vacuum
-      int startseq=(fdesc[fildes].fptr)/DATA_PER_CHUNK;
-      int endseq=(fdesc[fildes].fptr+nbyte-1)/DATA_PER_CHUNK;
+      uint32_t startseq=(fdesc[fildes].fptr)/DATA_PER_CHUNK;
+      uint32_t endseq=(fdesc[fildes].fptr+nbyte-1)/DATA_PER_CHUNK;
       LOG(1,"[.] %d %d\n",startseq, endseq);
-      int i;
+      uint32_t i;
       for(i=startseq;i<endseq;i++) {
         b=c=0;
         if(find_chunk(blocks, Data, fdesc[fildes].ichunk.inode.oid, 0, i, &b, &c)==NULL) {
@@ -826,14 +826,14 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
 
       LOG(3,"[i] writing chunk %d\n", chunk.data.seq);
       b=c=0;
-      const int towrite=((nbyte-written>DATA_PER_CHUNK-(fdesc[fildes].fptr+written)%DATA_PER_CHUNK)?
+      const uint32_t towrite=((nbyte-written>DATA_PER_CHUNK-(fdesc[fildes].fptr+written)%DATA_PER_CHUNK)?
                          DATA_PER_CHUNK-((fdesc[fildes].fptr+written)%DATA_PER_CHUNK):
                          (nbyte-written));
       if(find_chunk(blocks, Data, chunk.data.oid, 0, chunk.data.seq, &b, &c)!=NULL) {
         // found chunk, check if write is necessary, if so partial, or full?
         memcpy(chunk.data.data, &blocks[b][c].data.data, DATA_PER_CHUNK);
         memcpy(chunk.data.data+((fdesc[fildes].fptr+written)%DATA_PER_CHUNK), ((uint8_t*) buf)+written,towrite);
-        int i;
+        uint32_t i;
         // can we update the chunk, or have to del,create a new one?
         for(i=0;i<sizeof(Chunk);i++) {
           if((((uint8_t*) &blocks[b][c])[i] & ((uint8_t*) &chunk)[i]) != ((uint8_t*) &chunk)[i]) {
@@ -879,26 +879,26 @@ ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOC
   return written;
 }
 
-ssize_t stfs_read(int fildes, void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+ssize_t stfs_read(uint32_t fildes, void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   if(nbyte<1) return 0;
   if(buf==NULL) return 0;
   VALIDFD(fildes)
-  int read=0;
+  uint32_t read=0;
   uint32_t b,c;
-  int oid=fdesc[fildes].ichunk.inode.oid;
   if(nbyte+fdesc[fildes].fptr>fdesc[fildes].ichunk.inode.size) {
     // read only as much there is available, not beyond eof
     nbyte=fdesc[fildes].ichunk.inode.size-fdesc[fildes].fptr;
     LOG(3, "[i] changed nbyte to %d, size is %d\n",nbyte, fdesc[fildes].ichunk.inode.size);
   }
   for(read=0;read<nbyte;) {
-    int seq;
+    uint32_t seq;
     const Chunk *chunk;
     seq=(fdesc[fildes].fptr+read)/DATA_PER_CHUNK;
     b=c=0;
+    const uint32_t oid=fdesc[fildes].ichunk.inode.oid;
     if((chunk=find_chunk(blocks, Data, oid, 0, seq, &b, &c))!=NULL) {
       //printf("[i] found chunk %d\n",seq);
-      int coff=(fdesc[fildes].fptr+read)%DATA_PER_CHUNK;
+      uint32_t coff=(fdesc[fildes].fptr+read)%DATA_PER_CHUNK;
       //printf("[i] coff %d\n", coff);
       memcpy(((uint8_t*) buf)+read, chunk->data.data+coff, ((nbyte-read>DATA_PER_CHUNK)?(DATA_PER_CHUNK-coff):(nbyte-read)));
       read+=((nbyte-read>(DATA_PER_CHUNK-coff))?(DATA_PER_CHUNK-coff):(nbyte-read));
@@ -923,7 +923,7 @@ static void del_chunks(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint32_t oid) {
   LOG(3,"[i] deleted %d chunks from oid %x\n",n, oid);
 }
 
-int stfs_close(int fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+int stfs_close(uint32_t fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   VALIDFD(fildes)
 
   if(fdesc[fildes].idirty!=0) {
@@ -982,7 +982,7 @@ int stfs_close(int fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
 
 int stfs_unlink(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path) {
   uint32_t b=0, c=0;
-  int self=oid_by_path(blocks, path, &b, &c);
+  const uint32_t self=oid_by_path(blocks, path, &b, &c);
   if(self==0) {
     LOG(1, "[x] path doesn't exist '%s'\n", path);
     // fail no such file
@@ -1019,10 +1019,10 @@ int stfs_unlink(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path) {
   return 0;
 }
 
-int stfs_truncate(uint8_t *path, int length, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
+int stfs_truncate(uint8_t *path, uint32_t length, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   LOG(2, "[i] truncating '%s' to %d\n", path, length);
   uint32_t b=0, c=0;
-  int self=oid_by_path(blocks, path, &b, &c);
+  const uint32_t self=oid_by_path(blocks, path, &b, &c);
   if(self==0) {
     LOG(1, "[x] path doesn't exist '%s'\n", path);
     // fail no such file
@@ -1089,7 +1089,7 @@ int stfs_truncate(uint8_t *path, int length, Chunk blocks[NBLOCKS][CHUNKS_PER_BL
 
 int stfs_init(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   // check if at least one block is empty for migration
-  int i;
+  uint32_t i;
   for(i=0;i<NBLOCKS;i++) {
     if(blocks[i][0].type==Empty) {
       break;
@@ -1104,8 +1104,8 @@ int stfs_init(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
 }
 
 void dump_info(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  int i, b,c, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
-  int candidate=-1, candidate_reclaim=0, reserved=-1;
+  uint32_t i, b,c, candidate_reclaim=0, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
+  int candidate=-1, reserved=-1;
   for(i=0;i<NBLOCKS;i++) { used[i]=0; unused[i]=0; deleted[i]=0; }
   fprintf(stderr, "[i] Block stats\n");
   for(b=0;b<NBLOCKS;b++) {

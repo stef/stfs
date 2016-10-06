@@ -100,7 +100,6 @@ def check():
         if obj['type']==1: # files
             if (obj['size']/121)+1>len(obj['seq']) and obj['size']%121!=0:
                print "[x] only %d chunks (%d B) for %d bytes - %s" % (len(obj['seq']), len(obj['seq'])*121, obj['size'], obj['path'])
-               print obj
             elif (obj['size']<len(obj['seq'])):
                print "[i] %d chunks (%d B) for only %d bytes - %s" % (len(obj['seq']), len(obj['seq'])*121, obj['size'], obj['path'])
             else:
@@ -109,7 +108,7 @@ def check():
             print "[ ] directory %s" % (obj['path'])
 
     print "free/used/deleted"
-    for i in xrange(6):
+    for i in xrange(5):
         print empty[i], used[i], deleted[i]
     return objects
 
@@ -181,7 +180,7 @@ while 1:
         xqt("m %d %s" % (len(path), path))
     elif op == 'x':
         if len(dirs)<1: continue
-        if random.randint(0,3)>0: continue
+        if random.randint(0,2)>0: continue
         path=random.choice(tuple(dirs))
         xqt("x %d %s" % (len(path), path))
     elif op == 'o':

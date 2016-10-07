@@ -55,6 +55,7 @@
 #include <stdint.h>
 #include <string.h> // mem*
 #include <stdio.h>  // printf
+#include <stdlib.h> // random
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -154,6 +155,7 @@ typedef struct {
 
 static STFS_File fdesc[MAX_OPEN_FILES];
 static uint32_t errno;
+static uint32_t reserved_block;
 
 void dump(uint8_t *src, uint32_t len) {
   uint32_t i,j;
@@ -228,6 +230,7 @@ static const Chunk* find_inode_by_parent_fname(Chunk blocks[NBLOCKS][CHUNKS_PER_
   uint32_t b;
   const uint32_t fsize=strlen((const char*) fname);
   for(b=0;b<NBLOCKS;b++) {
+    if(b==reserved_block) continue;
     uint32_t c;
     for(c=0;c<CHUNKS_PER_BLOCK && blocks[b][c].type!=Empty;c++) {
       //fprintf(stderr, "[O] %d == %d '%s', '%s'\n", fsize, blocks[b][c].inode.name_len, fname, blocks[b][c].inode.name);
@@ -255,6 +258,7 @@ static const Chunk* find_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK],
   //printf("[i] find_chunk %x %x %x %x %d %d\n", type, oid, parent, seq, *block, *chunk);
   uint32_t b,c=*chunk;
   for(b=*block;b<NBLOCKS;b++) {
+    if(b==reserved_block) continue;
     for(;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==type && (
               // for inodes we match oids
@@ -345,7 +349,7 @@ static int write_chunk(void *dst, void *src, uint32_t size) {
 
 int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   uint32_t i, b,c, candidate_reclaim=0, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
-  int candidate=-1, reserved=-1;
+  int candidate=-1;
   for(i=0;i<NBLOCKS;i++) { used[i]=unused[i]=deleted[i]=0; }
   LOG(2, "[i] Block stats\n");
   for(b=0;b<NBLOCKS;b++) {
@@ -356,9 +360,10 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
       default: { used[b]++; break; }
       }
     }
-    if(unused[b]==CHUNKS_PER_BLOCK && reserved==-1) {
-      reserved=b;
-    } else if((unused[b]+deleted[b])>candidate_reclaim) {
+    if((unused[b]+deleted[b])>candidate_reclaim) {
+      candidate=b;
+      candidate_reclaim=(unused[b]+deleted[b]);
+    } else if((unused[b]+deleted[b])>(candidate_reclaim*9)/10 && random()%4==0) {
       candidate=b;
       candidate_reclaim=(unused[b]+deleted[b]);
     }
@@ -366,21 +371,22 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   for(b=0;b<NBLOCKS;b++) {
     LOG(2, "\t%d %4d %4d %4d\n", b, unused[b], used[b], deleted[b]);
   }
-  if(reserved==-1 || candidate==-1) {
+  if(candidate==-1) {
     // fail
-    LOG(1, "[x] vacuum reserved: %d candidate: %d\n", reserved, candidate);
+    LOG(1, "[x] vacuum reserved: %d candidate: %d\n", reserved_block, candidate);
     errno = E_VAC;
     return -1;
   }
-  LOG(2, "[i] vacuuming from %d to %d\n", candidate, reserved);
+  LOG(2, "[i] vacuuming from %d to %d\n", candidate, reserved_block);
   i=0;
   for(c=0;c<CHUNKS_PER_BLOCK;c++) {
     if(blocks[candidate][c].type==Inode || blocks[candidate][c].type==Data) {
-      write_chunk(&blocks[reserved][i++], &blocks[candidate][c], sizeof(Chunk));
+      write_chunk(&blocks[reserved_block][i++], &blocks[candidate][c], sizeof(Chunk));
     }
   }
   // erase candidate
   memset(&blocks[candidate],0xff,CHUNKS_PER_BLOCK*CHUNK_SIZE);
+  reserved_block=candidate;
   return 0;
 }
 
@@ -388,25 +394,6 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
   uint32_t b=0, c=0;
   //printf("[i] store_chunk\n");
   if(find_chunk(blocks, Empty, 0, 0, 0, &b, &c)==NULL) {
-    // fail no empty chunk found - should be impossible,
-    // since there should be a reserved block always
-    LOG(1, "[!] has no free chunk! also not on reserved block!\n");
-    errno = E_FULL;
-    return -1;
-  }
-  if(c==0) { // completely empty block, check if there's other empty blocks
-    uint32_t i, found=0;
-    for(i=0;i<NBLOCKS;i++) {
-      if(i!=b && blocks[i][0].type==Empty) {
-        found++;
-        break;
-      }
-    }
-    // fail no empty blocks found
-    // time to vacuum clean
-    if(found==0) {
-      b++; // skip reserved block
-      if(find_chunk(blocks, Empty, 0, 0, 0, &b, &c)==NULL) {
         // no no free chunk found try to vacuum
         if(vacuum(blocks)!=0) {
           // failed vacuuming filesystem is full
@@ -423,28 +410,6 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
           errno = E_FULL;
           return -1;
         }
-        if(c==0) { // completely empty block, check if there's other empty blocks
-          uint32_t i, found=0;
-          for(i=0;i<NBLOCKS;i++) {
-            if(i!=b && blocks[i][0].type==Empty) {
-              found++;
-              break;
-            }
-          }
-          // fail no empty blocks found
-          if(found==0) {
-            b++; // block is reserved, skip it.
-            if(find_chunk(blocks, Empty, 0, 0, 0, &b, &c)==NULL) {
-              // fail no empty chunk found - should be impossible,
-              // since we just vacuumed
-              LOG(1, "[!] has no free chunk! even after vacuuming!\n");
-              errno = E_FULL;
-              return -1;
-            }
-          }
-        }
-      }
-    }
   }
   //printf("[i] storing to %d %d\n", b,c);
   return write_chunk(&blocks[b][c], chunk, sizeof(*chunk));
@@ -454,6 +419,7 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
   uint32_t b,c;
   if (oid < 2) return 0;
   for(b=0;b<NBLOCKS;b++) {
+    if(b==reserved_block) continue;
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==Inode && blocks[b][c].inode.oid == oid) return 0;
     }
@@ -464,6 +430,7 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   uint32_t b,c;
   for(b=0;b<NBLOCKS;b++) {
+    if(b==reserved_block) continue;
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==Inode) {
         uint32_t oid = blocks[b][c].inode.oid + 1;
@@ -1088,17 +1055,30 @@ int stfs_truncate(uint8_t *path, uint32_t length, Chunk blocks[NBLOCKS][CHUNKS_P
 
 int stfs_init(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   // check if at least one block is empty for migration
-  uint32_t i;
-  for(i=0;i<NBLOCKS;i++) {
-    if(blocks[i][0].type==Empty) {
-      break;
-    }
+  uint32_t b, free, rcan, i;
+  for(b=0,free=0;b<NBLOCKS;b++) {
+    if(blocks[b][0].type==Empty) free++;
   }
-  if(i>=NBLOCKS) {
+  if(free==0) {
     // fail no empty blocks
     return -1;
   }
+  rcan=random()%free;
+  for(b=0,i=0;b<NBLOCKS;b++) {
+    if(blocks[b][0].type==Empty) {
+      if(i++==rcan) {
+        reserved_block=b;
+        break;
+      }
+    }
+  }
+  if(b>=NBLOCKS) {
+    // fail no empty blocks
+    return -1;
+  }
+
   memset(fdesc,0xff,sizeof(fdesc));
+
   return 0;
 }
 

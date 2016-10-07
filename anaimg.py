@@ -26,7 +26,7 @@ def split_by_n( seq, n ):
 
 def dump_chunks(prev):
     if prev[0]=='d':
-        print "data\t%3d blocks of %x [%s..%s]" % (len(prev[2]), prev[1], str(prev[2][:3])[1:-1], str(prev[2][-3:])[1:-1])
+        print "data\t%3d blocks of %d [%s..%s]" % (len(prev[2]), prev[1], str(prev[2][:3])[1:-1], str(prev[2][-3:])[1:-1])
     elif prev[0]=='e':
         print "empty\t%3d blocks" % (prev[1])
     elif prev[0]=='x':
@@ -79,7 +79,7 @@ for b, block in enumerate(split_by_n(img,128*1024)):
             if prev:
                 dump_chunks(prev)
                 prev = None
-            print "inode:\t%s '%s' inode(%x) %dB parent: %x" % (
+            print "inode:\t%s '%s' inode(%d) %dB parent: %d" % (
                 "File" if (chunk.node.inode.bits.type==1) else "Directory",
                 name,
                 chunk.node.inode.oid,

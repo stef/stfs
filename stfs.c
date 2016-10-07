@@ -96,8 +96,7 @@
 #define VALIDFD(fd) if(validfd(fd)!=0) return -1;
 
 #ifdef DEBUG_LEVEL
-const uint8_t debug=DEBUG_LEVEL;
-#define LOG(level, ...) if(debug>=level) fprintf(stderr, ##__VA_ARGS__)
+#define LOG(level, ...) if(DEBUG_LEVEL>=level) fprintf(stderr, ##__VA_ARGS__)
 #else
 #define LOG(level, ...)
 #endif // DEBUG_LEVEL
@@ -116,7 +115,7 @@ typedef enum {
 
 typedef struct Inode_Struct {
   InodeType type :1;
-  int name_len :6;
+  unsigned int name_len :6;
   int padding: 1;
   uint16_t size;
   uint32_t parent;
@@ -170,7 +169,7 @@ void dump_inode(const Inode_t *inode) {
     uint8_t tmpname[33];
     if(inode->name_len>32 || inode->name_len<1) {
       printf("[x] inode has invalide name size: %d\n", inode->name_len);
-      printf("[i] chunk: %s inode(%x) %dB parent: %x\n",
+      printf("[i] chunk: %s inode(%d) %dB parent: %x\n",
              (inode->type==File)?"File":"Directory",
              inode->oid,
              inode->size,
@@ -180,7 +179,7 @@ void dump_inode(const Inode_t *inode) {
     }
     memcpy(tmpname,inode->name, inode->name_len);
     tmpname[inode->name_len]=0;
-    printf("[i] chunk: %s %s inode(%x) %dB parent: %x\n",
+    printf("[i] chunk: %s %s inode(%d) %dB parent: %x\n",
            (inode->type==File)?"File":"Directory",
            tmpname,
            inode->oid,
@@ -194,7 +193,7 @@ void dump_chunk(Chunk *chunk) {
   case(Empty): { printf("[i] chunk: empty\n"); break; }
   case(Deleted): { printf("[i] chunk: deleted\n"); break; }
   case(Data): {
-    printf("[i] chunk: data %x %x\n", chunk->data.oid, chunk->data.seq);
+    printf("[i] chunk: data %d %d\n", chunk->data.oid, chunk->data.seq);
     dump(chunk->data.data,DATA_PER_CHUNK);
     break;
   }
@@ -347,8 +346,8 @@ static int write_chunk(void *dst, void *src, uint32_t size) {
 int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   uint32_t i, b,c, candidate_reclaim=0, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
   int candidate=-1, reserved=-1;
-  for(i=0;i<NBLOCKS;i++) { used[i]=0; unused[i]=0; deleted[i]=0; }
-  fprintf(stderr, "[i] Block stats\n");
+  for(i=0;i<NBLOCKS;i++) { used[i]=unused[i]=deleted[i]=0; }
+  LOG(2, "[i] Block stats\n");
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       switch(blocks[b][c].type) {
@@ -657,7 +656,7 @@ int stfs_rmdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path) {
   return 0;
 }
 
-int geterrno(void) {
+int stfs_geterrno(void) {
   return errno;
 }
 
@@ -811,9 +810,9 @@ ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[
           errno = E_NOCHUNK;
           return -1;
         }
-        // sacrificing performance it might be good to check if the
-        // overwritten block changes in a way that needs
-        // deletion. otherwise we could skip deleting it.
+        // todo: sacrificing performance check if the overwritten
+        // block changes in a way that needs deletion. otherwise we
+        // could skip deleting it.
         del_chunk(blocks, b, c);
       }
       LOG(3,"[i] deleted %d chunks to be overwritten\n",endseq-startseq);
@@ -1107,7 +1106,7 @@ void dump_info(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   uint32_t i, b,c, candidate_reclaim=0, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
   int candidate=-1, reserved=-1;
   for(i=0;i<NBLOCKS;i++) { used[i]=0; unused[i]=0; deleted[i]=0; }
-  fprintf(stderr, "[i] Block stats\n");
+  LOG(2, "[i] Block stats\n");
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       switch(blocks[b][c].type) {

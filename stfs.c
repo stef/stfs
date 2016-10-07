@@ -360,6 +360,7 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
       default: { used[b]++; break; }
       }
     }
+    if(b==reserved_block) continue;
     if((unused[b]+deleted[b])>candidate_reclaim) {
       candidate=b;
       candidate_reclaim=(unused[b]+deleted[b]);

@@ -10,6 +10,8 @@
   c <fd> - close
   t <size> <path> - truncate
   d <path> - unlink
+  p - reset
+  # <cmt> - comment
 
   <path> is always length prefixed, space-separated, e.g.:
   m 5 /root
@@ -205,6 +207,17 @@ int _main(void) {
       fprintf(stderr,"truncate %d '%s' returns: %d\n", size, path, stfs_truncate(path, size, blocks));
       break;
     };
+    case('p'): {
+      if(stfs_init(blocks)==-1) {
+        return 0;
+      };
+      fprintf(stderr,"reset device\n");
+      break;
+    }
+    case('#'): {
+      while(getchar()!='\n');
+      break;
+    }
     case('\n'): break;
     default: return 0;
     }

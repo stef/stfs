@@ -450,6 +450,7 @@ static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
       return oid+i;
     }
   }
+  // this should never be reached!
   return 0;
 }
 

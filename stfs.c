@@ -66,6 +66,9 @@
 #define MAX_FILE_SIZE 65535
 #define MAX_OPEN_FILES 4
 
+#define OID_BLOCK_SIZE (CHUNKS_PER_BLOCK * (NBLOCKS - 1) + MAX_OPEN_FILES + 3)
+#define OID_START_OFFSET 1
+
 #define E_NOFDS     0
 #define E_EXISTS    1
 #define E_NOTOPEN   2
@@ -156,6 +159,7 @@ typedef struct {
 static STFS_File fdesc[MAX_OPEN_FILES];
 static uint32_t errno;
 static uint32_t reserved_block;
+static uint32_t current_oid_offset = OID_START_OFFSET;
 
 void dump(uint8_t *src, uint32_t len) {
   uint32_t i,j;
@@ -434,24 +438,19 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
 }
 
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  uint32_t b,c, fd;
-  for(b=0;b<NBLOCKS;b++) {
-    if(b==reserved_block) continue;
-    for(c=0;c<CHUNKS_PER_BLOCK;c++) {
-      if(blocks[b][c].type==Inode) {
-        uint32_t oid = blocks[b][c].inode.oid + 1;
-        if (is_oid_available(blocks, oid)) return oid;
+  uint32_t oid = current_oid_offset + 1 ;
+  uint32_t i;
+  for(i=0; i < OID_BLOCK_SIZE; i++) {
+    if(is_oid_available(blocks, oid+i)) {
+      if(0xFFFFFFFF-OID_BLOCK_SIZE < current_oid_offset) {
+        current_oid_offset = OID_START_OFFSET;
+      } else {
+        current_oid_offset += OID_BLOCK_SIZE;
       }
+      return oid+i;
     }
   }
-  // if execution reaches this, we ran out of OIDs or the FS is empty
-  for(fd=0;fd<MAX_OPEN_FILES;fd++) {
-    if(fdesc[fd].free==0) {
-        uint32_t oid = fdesc[fd].ichunk.inode.oid+1;
-        if (is_oid_available(blocks, oid)) return oid;
-    }
-  }
-  return 2;
+  return 0;
 }
 
 static void del_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t b, const uint32_t c) {

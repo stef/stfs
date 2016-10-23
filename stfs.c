@@ -362,9 +362,11 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
     }
     if(b==reserved_block) continue;
     if((unused[b]+deleted[b])>candidate_reclaim) {
+      LOG(1, "[i] old, new can: %d %d (%d>%d)\n", candidate, b, (unused[b]+deleted[b]),candidate_reclaim);
       candidate=b;
       candidate_reclaim=(unused[b]+deleted[b]);
     } else if((unused[b]+deleted[b])>(candidate_reclaim*9)/10 && random()%4==0) {
+      LOG(1, "[i] lucky old, new can: %d %d (%d>%d)\n", candidate, b, (unused[b]+deleted[b]),candidate_reclaim);
       candidate=b;
       candidate_reclaim=(unused[b]+deleted[b]);
     }
@@ -417,8 +419,11 @@ static int store_chunk(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], Chunk *chunk) {
 }
 
 static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const uint32_t oid) {
-  uint32_t b,c;
+  uint32_t b,c, fd;
   if (oid < 2) return 0;
+  for(fd=0;fd<MAX_OPEN_FILES;fd++) {
+    if(fdesc[fd].free==0 && fdesc[fd].ichunk.inode.oid == oid) return 0;
+  }
   for(b=0;b<NBLOCKS;b++) {
     if(b==reserved_block) continue;
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
@@ -429,7 +434,7 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
 }
 
 static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
-  uint32_t b,c;
+  uint32_t b,c, fd;
   for(b=0;b<NBLOCKS;b++) {
     if(b==reserved_block) continue;
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
@@ -440,6 +445,12 @@ static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
     }
   }
   // if execution reaches this, we ran out of OIDs or the FS is empty
+  for(fd=0;fd<MAX_OPEN_FILES;fd++) {
+    if(fdesc[fd].free==0) {
+        uint32_t oid = fdesc[fd].ichunk.inode.oid+1;
+        if (is_oid_available(blocks, oid)) return oid;
+    }
+  }
   return 2;
 }
 

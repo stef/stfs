@@ -121,7 +121,7 @@ for oid, obj in objects.items():
         o=objects.get(o['parent'])
     obj['path']=''.join(reversed(path))
     if not o or o['oid']!=1:
-        print "dangling object", obj['path']
+        print "dangling object", obj['path'], hex(obj.get('parent'))
     # check if seq list could be valid
     #for i, seq in enumerate(sorted(obj['seq'])):
     #    if i!=seq:

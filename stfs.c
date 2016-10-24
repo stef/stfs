@@ -432,6 +432,7 @@ static uint8_t is_oid_available(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], const u
     if(b==reserved_block) continue;
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       if(blocks[b][c].type==Inode && blocks[b][c].inode.oid == oid) return 0;
+      if(blocks[b][c].type==Data && blocks[b][c].data.oid == oid) return 0;
     }
   }
   return 1;
@@ -447,6 +448,7 @@ static uint32_t new_oid(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
       } else {
         current_oid_offset += OID_BLOCK_SIZE;
       }
+      LOG(3,"[i] returning new oid %d\n", oid+i);
       return oid+i;
     }
   }
@@ -538,6 +540,13 @@ static int create_obj(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path, Ch
     LOG(1, "[x] '%s' not found by oid\n", path);
     // fail no such directory
     errno = E_NOTFOUND;
+    ret=-1;
+    goto exit;
+  }
+  // check if parent is a directory
+  if(parent!=1 && blocks[b][c].inode.type!=Directory) {
+    // parent is a file
+    errno = E_WRONGOBJ;
     ret=-1;
     goto exit;
   }

@@ -174,7 +174,7 @@ void dump(uint8_t *src, uint32_t len) {
 void dump_inode(const Inode_t *inode) {
     uint8_t tmpname[33];
     if(inode->name_len>32 || inode->name_len<1) {
-      printf("[x] inode has invalide name size: %d\n", inode->name_len);
+      printf("[x] inode has invalid name size: %d\n", inode->name_len);
       printf("[i] chunk: %s inode(%d) %dB parent: %x\n",
              (inode->type==File)?"File":"Directory",
              inode->oid,
@@ -384,6 +384,12 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
     errno = E_VAC;
     return -1;
   }
+  if(candidate>=NBLOCKS) {
+    // fail
+    LOG(1, "[x] vacuum invalid block: %d candidate: %d\n", reserved_block, candidate);
+    errno = E_VAC;
+    return -1;
+  }
   LOG(2, "[i] vacuuming from %d to %d\n", candidate, reserved_block);
   i=0;
   for(c=0;c<CHUNKS_PER_BLOCK;c++) {
@@ -501,7 +507,7 @@ const Inode_t* readdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], ReaddirCTX *ctx)
 static uint8_t* split_path(uint8_t *path) {
   uint32_t i;
   uint8_t* ptr=NULL;
-  for(i=0;path[i]!=0 && i<(2^32)-1;i++) {
+  for(i=0;path[i]!=0 && i<0xffffffff;i++) {
     if(path[i]=='/') ptr=&(path[i]);
   }
   if(ptr==NULL) {
@@ -788,11 +794,14 @@ ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[
       // then every chunk overwrite would trigger a full vacuum
       uint32_t startseq=(fdesc[fildes].fptr)/DATA_PER_CHUNK;
       uint32_t endseq=(fdesc[fildes].fptr+nbyte-1)/DATA_PER_CHUNK;
+      if(endseq>fdesc[fildes].ichunk.inode.size/DATA_PER_CHUNK)
+        endseq = fdesc[fildes].ichunk.inode.size/DATA_PER_CHUNK;
       LOG(1,"[.] %d %d\n",startseq, endseq);
       uint32_t i;
       for(i=startseq;i<endseq;i++) {
         b=c=0;
         if(find_chunk(blocks, Data, fdesc[fildes].ichunk.inode.oid, 0, i, &b, &c)==NULL) {
+          continue;
           // fail, couldn't find chunk
           LOG(1, "[x] couldn't find chunk to overwrite: %d\n", i);
           errno = E_NOCHUNK;
@@ -858,6 +867,8 @@ ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[
   if(written+fdesc[fildes].fptr>fdesc[fildes].ichunk.inode.size) {
     // file grows update inode
     fdesc[fildes].ichunk.inode.size=written+fdesc[fildes].fptr;
+  }
+  if(written>0) {
     fdesc[fildes].idirty=1;
   }
 
@@ -1029,9 +1040,9 @@ int stfs_truncate(uint8_t *path, uint32_t length, Chunk blocks[NBLOCKS][CHUNKS_P
     errno = E_WRONGOBJ;
     return -1;
   }
-  if(blocks[b][c].inode.size<length) {
+  if(blocks[b][c].inode.size<=length) {
     // fail
-    LOG(1, "[x] path '%s' is not a File\n", path);
+    LOG(1, "[x] path '%s' is too short\n", path);
     errno = E_NOEXT;
     return -1;
   }
@@ -1056,7 +1067,6 @@ int stfs_truncate(uint8_t *path, uint32_t length, Chunk blocks[NBLOCKS][CHUNKS_P
     b=c=0;
     if((chunk=find_chunk(blocks, Data, oid, 0, seq++, &b, &c))==NULL) {
       LOG(1, "[x] no chunk to truncate from found\n");
-      // todo errno
       errno = E_NOCHUNK;
       return -1;
     }

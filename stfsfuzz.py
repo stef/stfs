@@ -2,9 +2,14 @@
 
 import random
 import sys
-from sh import afl
+
+import sh
+afl = sh.Command("./afl");
 from stfs import Chunk
 from binascii import hexlify
+
+
+
 
 ops = ('m', 'l', 'n', 'x', 'o', 'w', 'r', 's', 'c', 'd', 't', 'c', 'c', 'c' )
 dirs=set([''])

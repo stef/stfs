@@ -6,10 +6,41 @@
 
 #define CHUNK_SIZE 128
 #define CHUNKS_PER_BLOCK 1024
-#define NBLOCKS 5
+#define NBLOCKS 6
 #define DATA_PER_CHUNK (CHUNK_SIZE-7)
 #define MAX_FILE_SIZE 65535
 #define MAX_OPEN_FILES 4
+#define MAX_DIR_SIZE 32
+
+#define O_CREAT 64
+
+#define E_NOFDS     0
+#define E_EXISTS    1
+#define E_NOTOPEN   2
+#define E_INVFD     3
+#define E_INVFP     4
+#define E_TOOBIG    5
+#define E_SHORTWRT  6
+#define E_NOSEEKEOF 7
+#define E_NOSEEKSOF 8
+#define E_NOTFOUND  9
+#define E_WRONGOBJ  10
+#define E_NOCHUNK   11
+#define E_NOEXT     12
+#define E_RELPATH   13
+#define E_NAMESIZE  14
+#define E_FULL      15
+#define E_BADCHUNK  16
+#define E_VAC       17
+#define E_INVNAME   18
+#define E_OPEN      19
+#define E_DELROOT   20
+#define E_FDREOPEN  21
+#define E_DANGLE    22
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
 
 typedef enum {
   Deleted          = 0x00,
@@ -25,7 +56,7 @@ typedef enum {
 
 typedef struct Inode_Struct {
   InodeType type :1;
-  int name_len :6;
+  unsigned int name_len :6;
   int padding: 1;
   uint16_t size;
   uint32_t parent;
@@ -54,17 +85,28 @@ typedef struct {
   uint32_t chunk;
 } ReaddirCTX;
 
+typedef struct {
+  char free :1;
+  char idirty :1;
+  char padding :6;
+  Chunk ichunk;
+  uint32_t fptr;
+} STFS_File;
+
 int opendir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path, ReaddirCTX *ctx);
 const Inode_t* readdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], ReaddirCTX *ctx);
 int stfs_mkdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path);
 int stfs_rmdir(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path);
-int stfs_open(uint8_t *path, int oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
-off_t stfs_lseek(int fildes, off_t offset, int whence);
-ssize_t stfs_write(int fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
-ssize_t stfs_read(int fildes, void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
-int stfs_close(int fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
+int stfs_open(uint8_t *path, uint32_t oflag, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
+off_t stfs_lseek(uint32_t fildes, off_t offset, int whence);
+ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
+ssize_t stfs_read(uint32_t fildes, void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
+int stfs_close(uint32_t fildes, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
 int stfs_unlink(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK], uint8_t *path);
-int stfs_truncate(uint8_t *path, int length, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
+int stfs_truncate(uint8_t *path, uint32_t length, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
 int stfs_init(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]);
+int stfs_geterrno(void);
+
+uint32_t stfs_size(uint32_t fildes);
 
 #endif //STFS_H

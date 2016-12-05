@@ -56,46 +56,13 @@
 #include <string.h> // mem*
 #include <stdio.h>  // printf
 #include <stdlib.h> // random
-#include <fcntl.h>
+// todo delme #include <fcntl.h>
 #include <unistd.h>
 
-#define CHUNK_SIZE 128
-#define CHUNKS_PER_BLOCK 1024
-#define NBLOCKS 5
-#define DATA_PER_CHUNK (CHUNK_SIZE-7)
-#define MAX_FILE_SIZE 65535
-#define MAX_OPEN_FILES 4
+#include "stfs.h"
 
 #define OID_BLOCK_SIZE (CHUNKS_PER_BLOCK * (NBLOCKS - 1) + MAX_OPEN_FILES + 3)
 #define OID_START_OFFSET 1
-
-#define E_NOFDS     0
-#define E_EXISTS    1
-#define E_NOTOPEN   2
-#define E_INVFD     3
-#define E_INVFP     4
-#define E_TOOBIG    5
-#define E_SHORTWRT  6
-#define E_NOSEEKEOF 7
-#define E_NOSEEKSOF 8
-#define E_NOTFOUND  9
-#define E_WRONGOBJ  10
-#define E_NOCHUNK   11
-#define E_NOEXT     12
-#define E_RELPATH   13
-#define E_NAMESIZE  14
-#define E_FULL      15
-#define E_BADCHUNK  16
-#define E_VAC       17
-#define E_INVNAME   18
-#define E_OPEN      19
-#define E_DELROOT   20
-#define E_FDREOPEN  21
-#define E_DANGLE    22
-
-#define SEEK_SET 0
-#define SEEK_CUR 1
-#define SEEK_END 2
 
 #define VALIDFD(fd) if(validfd(fd)!=0) return -1;
 
@@ -104,57 +71,6 @@
 #else
 #define LOG(level, ...)
 #endif // DEBUG_LEVEL
-
-typedef enum {
-  Deleted          = 0x00,
-  Inode            = 0xAA,
-  Data             = 0xCC,
-  Empty            = 0xff
-} ChunkType;
-
-typedef enum {
-  Directory          = 0x00,
-  File               = 0x01,
-} InodeType;
-
-typedef struct Inode_Struct {
-  InodeType type :1;
-  unsigned int name_len :6;
-  int padding: 1;
-  uint16_t size;
-  uint32_t parent;
-  uint32_t oid;
-  uint8_t name[32];
-  uint8_t data[CHUNK_SIZE - 44];
-} __attribute((packed)) Inode_t;
-
-typedef struct Data_Struct {
-  uint16_t seq;
-  uint32_t oid;
-  uint8_t data[CHUNK_SIZE-7];
-} __attribute((packed)) Data_t;
-
-typedef struct Chunk_Struct {
-  ChunkType type :8;
-  union {
-    Inode_t inode;
-    Data_t data;
-  };
-} __attribute((packed)) Chunk;
-
-typedef struct {
-  uint32_t oid;
-  uint32_t block;
-  uint32_t chunk;
-} ReaddirCTX;
-
-typedef struct {
-  char free :1;
-  char idirty :1;
-  char padding :6;
-  Chunk ichunk;
-  uint32_t fptr;
-} STFS_File;
 
 static STFS_File fdesc[MAX_OPEN_FILES];
 static uint32_t errno;
@@ -355,7 +271,7 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   uint32_t i, b,c, candidate_reclaim=0, used[NBLOCKS], unused[NBLOCKS], deleted[NBLOCKS];
   int candidate=-1;
   for(i=0;i<NBLOCKS;i++) { used[i]=unused[i]=deleted[i]=0; }
-  LOG(2, "[i] Block stats\n");
+  //LOG(2, "[i] Block stats\n");
   for(b=0;b<NBLOCKS;b++) {
     for(c=0;c<CHUNKS_PER_BLOCK;c++) {
       switch(blocks[b][c].type) {
@@ -378,7 +294,7 @@ int vacuum(Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   for(b=0;b<NBLOCKS;b++) {
     LOG(2, "\t%d %4d %4d %4d\n", b, unused[b], used[b], deleted[b]);
   }
-  if(candidate==-1) {
+  if(candidate<0) {
     // fail
     LOG(1, "[x] vacuum reserved: %d candidate: %d\n", reserved_block, candidate);
     errno = E_VAC;
@@ -760,6 +676,11 @@ off_t stfs_lseek(uint32_t fildes, off_t offset, int whence) {
   return newfptr;
 }
 
+uint32_t stfs_size(uint32_t fildes) {
+  VALIDFD(fildes);
+  return fdesc[fildes].ichunk.inode.size;
+}
+
 ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[NBLOCKS][CHUNKS_PER_BLOCK]) {
   // check if fildes is valid
   // before writing a chunk check if it changed
@@ -803,9 +724,9 @@ ssize_t stfs_write(uint32_t fildes, const void *buf, size_t nbyte, Chunk blocks[
         if(find_chunk(blocks, Data, fdesc[fildes].ichunk.inode.oid, 0, i, &b, &c)==NULL) {
           continue;
           // fail, couldn't find chunk
-          LOG(1, "[x] couldn't find chunk to overwrite: %d\n", i);
-          errno = E_NOCHUNK;
-          return -1;
+          //LOG(1, "[x] couldn't find chunk to overwrite: %d\n", i);
+          //errno = E_NOCHUNK;
+          //return -1;
         }
         // todo: sacrificing performance check if the overwritten
         // block changes in a way that needs deletion. otherwise we

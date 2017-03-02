@@ -132,3 +132,10 @@ data structure
    deleted = 0x00 (1B) irrelevant(all 0x00) (127B)
 
    inode with oid 1 is the root directory and virtual
+
+important implementation todo
+
+   In case you adapat this code, please replace the call to
+   `random(3)` in `stfs_init()` and in vacuum() to the cryptographic
+   random function of your system such as /dev/random or /dev/urandom
+   on Unix-like systems, and CryptGenRandom on Windows.

@@ -660,12 +660,6 @@ off_t stfs_lseek(uint32_t fildes, off_t offset, int whence) {
   case(SEEK_SET): {newfptr=offset; break;}
   case(SEEK_CUR): {newfptr+=offset; break;}
   case(SEEK_END): {newfptr=fdesc[fildes].ichunk.inode.size+offset; break;}}
-  if(newfptr<0) {
-    // fail seek beyond sof
-    LOG(1, "[x] cannot seek before start of file\n");
-    errno = E_NOSEEKSOF;
-    return -1;
-  }
   if(newfptr>fdesc[fildes].ichunk.inode.size) {
     // fail seek beyond eof
     LOG(1, "[x] cannot seek beyond eof set\n");

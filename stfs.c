@@ -127,7 +127,7 @@ void dump_chunk(Chunk *chunk) {
 }
 
 static int validfd(uint32_t fildes) {
-  if(fildes<0 || fildes>=MAX_OPEN_FILES) {
+  if(fildes>=MAX_OPEN_FILES) {
     // fail invalid fildes
     LOG(1, "[x] invalid fd, %d\n", fildes);
     errno = E_INVFD;

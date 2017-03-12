@@ -12,7 +12,7 @@ used=[0,0,0,0,0]
 deleted=[0,0,0,0,0]
 
 def getimg():
-    with open("test.img", 'r') as fd:
+    with open(sys.argv[1], 'r') as fd:
         return fd.read()
 
 img = getimg()
